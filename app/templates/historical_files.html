@@ -1,29 +1,53 @@
 {% extends "base.html" %}
 {% block content %}
 <div style="text-align: center; padding: 20px;">
-  <h1>Historical Sessions</h1>
-  <table style="width:100%; border-collapse: collapse; border: 1px solid #ddd;">
-    <tr style="background-color: #f2f2f2;">
-      <th style="border: 1px solid #ddd; padding: 8px;">Session ID</th>
-      <th style="border: 1px solid #ddd; padding: 8px;">Case Number</th>
-      <th style="border: 1px solid #ddd; padding: 8px;">Upload Time</th>
-      <th style="border: 1px solid #ddd; padding: 8px;">Upload Folder</th>
-      <th style="border: 1px solid #ddd; padding: 8px;">Filename</th>
-      <th style="border: 1px solid #ddd; padding: 8px;">Actions</th>
-    </tr>
-    {% for upload in uploads %}
+  <h2>Historical Sessions</h2>
+  
+  <!-- Navigation Links -->
+  <div style="margin-bottom: 20px;">
+    <a href="{{ url_for('employee_bp.dashboard') }}" style="margin: 0 20px;">Back to Dashboard</a>
+    <a href="{{ url_for('employee_bp.logout') }}" style="margin: 0 20px;">Logout</a>
+  </div>
+  
+  <!-- Historical Sessions Table -->
+  {% if uploads %}
+  <table style="width:100%; border-collapse: collapse; margin-top: 20px;">
+    <thead>
+      <tr style="background-color: #d3d3d3;">
+        <th style="padding: 8px;">Session ID</th>
+        <th style="padding: 8px;">Case Number</th>
+        <th style="padding: 8px;">Upload Time</th>
+        <th style="padding: 8px;">Upload Folder</th>
+        <th style="padding: 8px;">File Name</th>
+        <th style="padding: 8px;">View Results</th>
+        <th style="padding: 8px;">Download Output</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for upload in uploads %}
       <tr>
-        <td style="border: 1px solid #ddd; padding: 8px;">{{ upload.session_id }}</td>
-        <td style="border: 1px solid #ddd; padding: 8px;">{{ upload.case_number }}</td>
-        <td style="border: 1px solid #ddd; padding: 8px;">{{ upload.upload_time }}</td>
-        <td style="border: 1px solid #ddd; padding: 8px;">{{ upload.upload_folder }}</td>
-        <td style="border: 1px solid #ddd; padding: 8px;">{{ upload.filename }}</td>
-        <td style="border: 1px solid #ddd; padding: 8px;">
-          <a href="{{ url_for('employee_bp.output_view', session_id=upload.session_id) }}">Download Outputs</a>
- 
+        <td style="padding: 8px; text-align: center;">{{ upload.session_id }}</td>
+        <td style="padding: 8px; text-align: center;">{{ upload.case_number }}</td>
+        <td style="padding: 8px; text-align: center;">{{ upload.upload_time }}</td>
+        <td style="padding: 8px; text-align: center;">{{ upload.upload_folder }}</td>
+        <td style="padding: 8px; text-align: center;">{{ upload.filename }}</td>
+        <td style="padding: 8px; text-align: center;">
+          {% set output_path = '/home/manish/flask_uploads/' ~ current_user.email.split('@')[0] ~ '/' ~ upload.case_number ~ '/' ~ upload.session_id ~ '/output/keywordsearch.html' %}
+          {% if output_path|exists %}
+            <a href="{{ url_for('employee_bp.serve_output', session_id=upload.session_id, filename='keywordsearch.html') }}" target="_blank">View Keyword Results</a>
+          {% else %}
+            N/A
+          {% endif %}
+        </td>
+        <td style="padding: 8px; text-align: center;">
+          <a href="{{ url_for('employee_bp.output_view', session_id=upload.session_id) }}">Download Output</a>
         </td>
       </tr>
-    {% endfor %}
+      {% endfor %}
+    </tbody>
   </table>
+  {% else %}
+  <p>No historical sessions found.</p>
+  {% endif %}
 </div>
 {% endblock %}

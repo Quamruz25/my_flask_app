@@ -61,73 +61,162 @@
   
   {% else %}
   <!-- Results Section: Display links for each script -->
-  <h3>Script Outputs</h3>
+  <h3>Script Outputs for Session {{ session_id }}</h3>
   <table style="width:100%; border-collapse: collapse; margin-top: 20px;">
     <thead>
       <tr style="background-color: #d3d3d3;">
         <th style="padding: 8px;">Script</th>
+        <th style="padding: 8px;">Status</th>
         <th style="padding: 8px;">View</th>
         <th style="padding: 8px;">Download</th>
         <th style="padding: 8px;">Email</th>
       </tr>
     </thead>
     <tbody>
-      {% if output_files['CCR'] %}
+      <!-- CCR Script -->
       <tr>
-        <td style="padding: 8px; text-align: center;">CCR</td>
+        <td style="padding: 8px; text-align: center;">Config Cleanup Recommender (CCR)</td>
         <td style="padding: 8px; text-align: center;">
-          <a href="{{ url_for('employee_bp.serve_static', session_id=session_id, script='ccr') }}" target="_blank">View</a>
+          {% if output_files['CCR'] and output_files['CCR']|exists %}
+            Completed
+          {% else %}
+            {% if 'ccr' in request.form.getlist('script_option') %}
+              Failed
+            {% else %}
+              Not Selected
+            {% endif %}
+          {% endif %}
         </td>
         <td style="padding: 8px; text-align: center;">
-          <a href="{{ url_for('employee_bp.download_output', session_id=session_id, script='ccr') }}">Download</a>
+          {% if output_files['CCR'] and output_files['CCR']|exists %}
+            <a href="{{ url_for('employee_bp.serve_output', session_id=session_id, filename='ccr_output.html') }}" target="_blank">View</a>
+          {% else %}
+            N/A
+          {% endif %}
         </td>
         <td style="padding: 8px; text-align: center;">
-          <a href="{{ url_for('employee_bp.email_output', session_id=session_id, script='ccr') }}">Email</a>
+          {% if output_files['CCR'] and output_files['CCR']|exists %}
+            <a href="{{ url_for('employee_bp.download_output', session_id=session_id, script='ccr') }}">Download</a>
+          {% else %}
+            N/A
+          {% endif %}
+        </td>
+        <td style="padding: 8px; text-align: center;">
+          {% if output_files['CCR'] and output_files['CCR']|exists %}
+            <a href="{{ url_for('employee_bp.email_output', session_id=session_id, script='ccr') }}">Email</a>
+          {% else %}
+            N/A
+          {% endif %}
         </td>
       </tr>
-      {% endif %}
-      {% if output_files['CHR'] %}
+      <!-- CHR Script -->
       <tr>
-        <td style="padding: 8px; text-align: center;">CHR</td>
+        <td style="padding: 8px; text-align: center;">Config Hierarchy (CHR)</td>
         <td style="padding: 8px; text-align: center;">
-          <a href="{{ url_for('employee_bp.serve_static', session_id=session_id, script='chr') }}" target="_blank">View</a>
+          {% if output_files['CHR'] and output_files['CHR']|exists %}
+            Completed
+          {% else %}
+            {% if 'chr' in request.form.getlist('script_option') %}
+              Failed
+            {% else %}
+              Not Selected
+            {% endif %}
+          {% endif %}
         </td>
         <td style="padding: 8px; text-align: center;">
-          <a href="{{ url_for('employee_bp.download_output', session_id=session_id, script='chr') }}">Download</a>
+          {% if output_files['CHR'] and output_files['CHR']|exists %}
+            <a href="{{ url_for('employee_bp.serve_output', session_id=session_id, filename='chr_output.html') }}" target="_blank">View</a>
+          {% else %}
+            N/A
+          {% endif %}
         </td>
         <td style="padding: 8px; text-align: center;">
-          <a href="{{ url_for('employee_bp.email_output', session_id=session_id, script='chr') }}">Email</a>
+          {% if output_files['CHR'] and output_files['CHR']|exists %}
+            <a href="{{ url_for('employee_bp.download_output', session_id=session_id, script='chr') }}">Download</a>
+          {% else %}
+            N/A
+          {% endif %}
+        </td>
+        <td style="padding: 8px; text-align: center;">
+          {% if output_files['CHR'] and output_files['CHR']|exists %}
+            <a href="{{ url_for('employee_bp.email_output', session_id=session_id, script='chr') }}">Email</a>
+          {% else %}
+            N/A
+          {% endif %}
         </td>
       </tr>
-      {% endif %}
-      {% if output_files['BUCKET'] %}
+      <!-- Bucket Script -->
       <tr>
-        <td style="padding: 8px; text-align: center;">Bucket</td>
+        <td style="padding: 8px; text-align: center;">TechSupport Splitter (Bucket)</td>
         <td style="padding: 8px; text-align: center;">
-          <a href="{{ url_for('employee_bp.serve_static', session_id=session_id, script='bucket') }}" target="_blank">View</a>
+          {% if output_files['BUCKET'] and output_files['BUCKET']|exists %}
+            Completed
+          {% else %}
+            {% if 'bucket' in request.form.getlist('script_option') %}
+              Failed
+            {% else %}
+              Not Selected
+            {% endif %}
+          {% endif %}
         </td>
         <td style="padding: 8px; text-align: center;">
-          <a href="{{ url_for('employee_bp.download_output', session_id=session_id, script='bucket') }}">Download</a>
+          {% if output_files['BUCKET'] and output_files['BUCKET']|exists %}
+            <a href="{{ url_for('employee_bp.serve_output', session_id=session_id, filename='bucket_output.html') }}" target="_blank">View</a>
+          {% else %}
+            N/A
+          {% endif %}
         </td>
         <td style="padding: 8px; text-align: center;">
-          <a href="{{ url_for('employee_bp.email_output', session_id=session_id, script='bucket') }}">Email</a>
+          {% if output_files['BUCKET'] and output_files['BUCKET']|exists %}
+            <a href="{{ url_for('employee_bp.download_output', session_id=session_id, script='bucket') }}">Download</a>
+          {% else %}
+            N/A
+          {% endif %}
+        </td>
+        <td style="padding: 8px; text-align: center;">
+          {% if output_files['BUCKET'] and output_files['BUCKET']|exists %}
+            <a href="{{ url_for('employee_bp.email_output', session_id=session_id, script='bucket') }}">Email</a>
+          {% else %}
+            N/A
+          {% endif %}
         </td>
       </tr>
-      {% endif %}
-      {% if output_files['KEYWORD'] %}
+      <!-- Keyword Script -->
       <tr>
-        <td style="padding: 8px; text-align: center;">Keyword</td>
+        <td style="padding: 8px; text-align: center;">Keyword Search</td>
         <td style="padding: 8px; text-align: center;">
-          <a href="{{ url_for('employee_bp.serve_static', session_id=session_id, script='keyword') }}" target="_blank">View</a>
+          {% if output_files['KEYWORD'] and output_files['KEYWORD']|exists %}
+            Completed
+          {% else %}
+            {% if 'keyword' in request.form.getlist('script_option') %}
+              Failed
+            {% else %}
+              Not Selected
+            {% endif %}
+          {% endif %}
         </td>
         <td style="padding: 8px; text-align: center;">
-          <a href="{{ url_for('employee_bp.download_output', session_id=session_id, script='keyword') }}">Download</a>
+          {% if output_files['KEYWORD'] and output_files['KEYWORD']|exists %}
+            <a href="{{ url_for('employee_bp.serve_output', session_id=session_id, filename='keywordsearch.html') }}" target="_blank">View</a>
+          {% else %}
+            N/A
+          {% endif %}
         </td>
         <td style="padding: 8px; text-align: center;">
-          <a href="{{ url_for('employee_bp.email_output', session_id=session_id, script='keyword') }}">Email</a>
+          {% if output_files['KEYWORD'] and output_files['KEYWORD']|exists %}
+            <a href="{{ url_for('employee_bp.download_output', session_id=session_id, script='keyword') }}">Download</a>
+          {% else %}
+            N/A
+          {% endif %}
+        </td>
+        <td style="padding: 8px; text-align: center;">
+          {% if output_files['KEYWORD'] and output_files['KEYWORD']|exists %}
+            <a href="{{ url_for('employee_bp.email_output', session_id=session_id, script='keyword') }}">Email</a>
+          {% else %}
+            N/A
+          {% endif %}
         </td>
       </tr>
-      {% endif %}
     </tbody>
   </table>
   
@@ -138,6 +227,40 @@
       window.location.href = "{{ url_for('employee_bp.dashboard') }}";
     }
   </script>
+  {% endif %}
+  
+  <!-- Display Recent Sessions (Limited to Last 3) -->
+  {% if sessions %}
+  <h3>Recent Sessions (Last 3)</h3>
+  <p>For a complete list, visit <a href="{{ url_for('employee_bp.historical') }}">Historical Sessions</a>.</p>
+  <table style="width:100%; border-collapse: collapse; margin-top: 20px;">
+    <thead>
+      <tr style="background-color: #d3d3d3;">
+        <th style="padding: 8px;">Session ID</th>
+        <th style="padding: 8px;">Case Number</th>
+        <th style="padding: 8px;">Upload Time</th>
+        <th style="padding: 8px;">File Name</th>
+        <th style="padding: 8px;">View Results</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for session in sessions[:3] %}
+      <tr>
+        <td style="padding: 8px; text-align: center;">{{ session.session_id }}</td>
+        <td style="padding: 8px; text-align: center;">{{ session.case_number }}</td>
+        <td style="padding: 8px; text-align: center;">{{ session.upload_time }}</td>
+        <td style="padding: 8px; text-align: center;">{{ session.file_name }}</td>
+        <td style="padding: 8px; text-align: center;">
+          {% if session.results_exist %}
+            <a href="{{ url_for('employee_bp.serve_output', session_id=session.session_id, filename='keywordsearch.html') }}" target="_blank">View Keyword Results</a>
+          {% else %}
+            N/A
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
   {% endif %}
 </div>
 {% endblock %}

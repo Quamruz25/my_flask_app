@@ -48,64 +48,50 @@ def create_app():
     mail.init_app(app)
     
     # Configure logging
-    # Create a file handler for app.log
     file_handler = RotatingFileHandler('/opt/my_flask_app/logs/app.log', maxBytes=10000000, backupCount=5)
     file_handler.setLevel(logging.DEBUG)
     formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(name)s - %(message)s')
     file_handler.setFormatter(formatter)
 
-    # Create a console handler for console output
     console_handler = logging.StreamHandler()
     console_handler.setLevel(logging.DEBUG)
     console_handler.setFormatter(formatter)
 
-    # Configure the root logger
+    # Configure root logger
     root_logger = logging.getLogger()
     root_logger.setLevel(logging.DEBUG)
-    root_logger.handlers = []  # Clear default handlers
-    root_logger.addHandler(file_handler)
-    root_logger.addHandler(console_handler)
+    root_logger.handlers = [file_handler, console_handler]  # Replace default handlers
+    root_logger.propagate = False
 
-    # Configure the app logger
+    # Configure app logger
     app_logger = logging.getLogger('app')
     app_logger.setLevel(logging.DEBUG)
-    app_logger.handlers = []  # Clear any existing handlers
-    app_logger.addHandler(file_handler)
-    app_logger.addHandler(console_handler)
-    app_logger.propagate = True
+    app_logger.handlers = [file_handler, console_handler]
+    app_logger.propagate = False
 
-    # Configure the Werkzeug logger
+    # Configure Werkzeug logger
     werkzeug_logger = logging.getLogger('werkzeug')
     werkzeug_logger.setLevel(logging.INFO)
-    werkzeug_logger.handlers = []
-    werkzeug_logger.addHandler(file_handler)
-    werkzeug_logger.addHandler(console_handler)
-    werkzeug_logger.propagate = True
+    werkzeug_logger.handlers = [file_handler, console_handler]
+    werkzeug_logger.propagate = False
 
-    # Configure the auth_routes logger
+    # Configure auth_routes logger
     auth_logger = logging.getLogger('app.routes.auth_routes')
     auth_logger.setLevel(logging.DEBUG)
-    auth_logger.handlers = []
-    auth_logger.addHandler(file_handler)
-    auth_logger.addHandler(console_handler)
-    auth_logger.propagate = True
+    auth_logger.handlers = [file_handler, console_handler]
+    auth_logger.propagate = False
 
-    # Configure the employee_routes logger
+    # Configure employee_routes logger
     employee_logger = logging.getLogger('app.routes.employee_routes')
     employee_logger.setLevel(logging.DEBUG)
-    employee_logger.handlers = []
-    employee_logger.addHandler(file_handler)
-    employee_logger.addHandler(console_handler)
-    employee_logger.propagate = True
+    employee_logger.handlers = [file_handler, console_handler]
+    employee_logger.propagate = False
 
-    # Configure Flask's built-in logger (app.logger)
-    app.logger.handlers = []
+    # Configure Flask's built-in logger
+    app.logger.handlers = [file_handler, console_handler]
     app.logger.setLevel(logging.DEBUG)
-    app.logger.addHandler(file_handler)
-    app.logger.addHandler(console_handler)
-    app.logger.propagate = True
+    app.logger.propagate = False
 
-    # Log a debug message to confirm logging is working
     app_logger.debug("Debug logging is enabled.")
     auth_logger.debug("Auth routes logger configured.")
     employee_logger.debug("Employee routes logger configured.")

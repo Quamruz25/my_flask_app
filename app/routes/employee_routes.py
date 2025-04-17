@@ -1,7 +1,6 @@
 import os
 import uuid
 import json
-import tarfile
 import shutil
 import subprocess
 from datetime import datetime
@@ -11,24 +10,14 @@ from app import db
 from app.models import User, SessionMetadata
 import logging
 from werkzeug.utils import secure_filename
-import gzip
 import threading
 import time
 
 employee_bp = Blueprint('employee_bp', __name__, template_folder='templates')
 logger = logging.getLogger('app.routes.employee_routes')
 
-def is_tar_file(file_path):
-    """Check if a file is a tar archive (possibly compressed with gzip)."""
-    try:
-        with tarfile.open(file_path, 'r:*') as tar:
-            tar.getnames()  # Attempt to read the tar file
-        return True
-    except tarfile.ReadError:
-        return False
-
-def extract_tar(tar_path, extract_path, depth=0, max_depth=10, processed_files=None, session_id=None):
-    """Recursively extract tar files up to a specified depth, but only for specific paths."""
+def extract_with_7zip(tar_path, extract_path, depth=0, max_depth=10, processed_files=None, session_id=None):
+    """Recursively extract archives using 7zip, up to a specified depth, for specific paths."""
     if processed_files is None:
         processed_files = set()
 
@@ -37,11 +26,11 @@ def extract_tar(tar_path, extract_path, depth=0, max_depth=10, processed_files=N
         return
 
     if tar_path in processed_files:
-        logger.debug(f"Skipping already processed tar file: {tar_path}")
+        logger.debug(f"Skipping already processed archive: {tar_path}")
         return
 
     if not os.path.exists(tar_path):
-        logger.debug(f"Skipping non-existent tar file: {tar_path}")
+        logger.debug(f"Skipping non-existent archive: {tar_path}")
         return
 
     # Determine if we should recursively extract this file
@@ -61,37 +50,82 @@ def extract_tar(tar_path, extract_path, depth=0, max_depth=10, processed_files=N
         return
 
     processed_files.add(tar_path)
-    logger.debug(f"Extracting tar file: {tar_path} at depth {depth}")
+    logger.debug(f"Extracting archive: {tar_path} at depth {depth} using 7zip")
 
     try:
-        with tarfile.open(tar_path, 'r:*') as tar:
-            # Log the contents of the tar file before extraction
-            tar_contents = tar.getnames()
-            logger.debug(f"Contents of {tar_path}: {tar_contents}")
-            tar.extractall(path=extract_path)
-            logger.debug(f"Extracted {tar_path} to {extract_path}")
+        # Use 7zip to extract the archive
+        command = f"7z x {tar_path} -o{extract_path} -y"
+        result = subprocess.run(command, shell=True, capture_output=True, text=True)
+        if result.returncode != 0:
+            logger.error(f"Failed to extract {tar_path} with 7zip: {result.stderr}")
+            return
+        logger.debug(f"Extracted {tar_path} to {extract_path}: {result.stdout}")
+
+        # Log the folder structure after extraction
+        extracted_contents = os.listdir(extract_path)
+        logger.debug(f"Contents of {extract_path} after extraction: {extracted_contents}")
+
+        # Fix permissions: set ownership to the 'manish' user
+        command = f"chown -R manish:manish {extract_path}"
+        result = subprocess.run(command, shell=True, capture_output=True, text=True)
+        if result.returncode != 0:
+            logger.error(f"Failed to set ownership for {extract_path}: {result.stderr}")
+        else:
+            logger.debug(f"Set ownership of {extract_path} to manish:manish")
     except Exception as e:
-        logger.error(f"Error extracting {tar_path}: {str(e)}")
+        logger.error(f"Error extracting {tar_path} with 7zip: {str(e)}")
         return
 
-    # Find nested tar files, but only process .tar, .tar.gz, .tgz (not plain .gz)
+    # Find nested archives, but only process .tar, .tar.gz, .tgz (not plain .gz)
     nested_tar_files = []
     for root, _, files in os.walk(extract_path):
         for file in files:
-            if file.endswith(('.tar', '.tar.gz', '.tgz')):  # Exclude plain .gz files
+            if file.endswith(('.tar', '.tar.gz', '.tgz')):
                 nested_tar_path = os.path.join(root, file)
-                if nested_tar_path not in processed_files and is_tar_file(nested_tar_path):
+                if nested_tar_path not in processed_files:
                     nested_tar_files.append((nested_tar_path, root))
                 else:
-                    logger.debug(f"Skipping nested file: {nested_tar_path} (already processed or not a tar file)")
+                    logger.debug(f"Skipping nested file: {nested_tar_path} (already processed)")
 
-    # Process nested tar files
+    # Process nested archives
     for nested_tar_path, nested_extract_path in nested_tar_files:
-        logger.debug(f"Processing nested tar file: {nested_tar_path} (depth {depth + 1})")
-        extract_tar(nested_tar_path, nested_extract_path, depth + 1, max_depth, processed_files, session_id)
+        logger.debug(f"Processing nested archive: {nested_tar_path} (depth {depth + 1})")
+        extract_with_7zip(nested_tar_path, nested_extract_path, depth + 1, max_depth, processed_files, session_id)
 
-    # Preserve tar files for debugging
-    logger.debug(f"Preserving tar file: {tar_path} (not removing)")
+    # After extracting configs.tar.gz or configs.tar, handle the folder structure
+    if tar_path.endswith('configs.tar.gz') or 'configs.tar' in tar_path:
+        # Find the root transaction folder
+        root_transaction_folder = extract_path
+        while not os.path.basename(root_transaction_folder) == session_id:
+            root_transaction_folder = os.path.dirname(root_transaction_folder)
+        config_path = os.path.join(root_transaction_folder, 'config')
+
+        # Look for 'flash' folder
+        flash_path = os.path.join(extract_path, 'flash')
+        if os.path.exists(flash_path):
+            os.makedirs(config_path, exist_ok=True)
+            # Move contents of flash to config
+            flash_contents = os.listdir(flash_path)
+            logger.debug(f"Contents of flash folder {flash_path}: {flash_contents}")
+            for item in os.listdir(flash_path):
+                src_path = os.path.join(flash_path, item)
+                dst_path = os.path.join(config_path, item)
+                try:
+                    shutil.move(src_path, dst_path)
+                    logger.debug(f"Moved {src_path} to {dst_path}")
+                except Exception as e:
+                    logger.error(f"Failed to move {src_path} to {dst_path}: {str(e)}")
+            # Remove the empty flash folder
+            try:
+                os.rmdir(flash_path)
+                logger.debug(f"Removed empty flash folder: {flash_path}")
+            except Exception as e:
+                logger.warning(f"Failed to remove flash folder {flash_path}: {str(e)}")
+        else:
+            logger.warning(f"Flash folder not found after extracting {tar_path}")
+
+    # Preserve archives for debugging
+    logger.debug(f"Preserving archive: {tar_path} (not removing)")
 
 def run_script_async(command, script_name, output_files, key, output_path, log_file):
     """Run a script asynchronously and update output_files."""
@@ -142,6 +176,12 @@ def dashboard():
         os.makedirs(output_folder, exist_ok=True)
         os.makedirs(log_folder, exist_ok=True)
 
+        # Clean up the input folder to ensure no stale files
+        if os.path.exists(input_folder):
+            shutil.rmtree(input_folder)
+            logger.debug(f"Cleaned up input folder: {input_folder}")
+        os.makedirs(input_folder, exist_ok=True)
+
         # Save the uploaded file with its original extension
         tar_path = os.path.join(transaction_folder, f"logs{tar_file.filename[-7:] if tar_file.filename.endswith('.tar.gz') else '.tar'}")
         tar_file.save(tar_path)
@@ -159,12 +199,12 @@ def dashboard():
         db.session.commit()
         logger.debug(f"Session metadata logged for session {session_id}")
 
-        # Extract tar file
+        # Extract archive using 7zip
         try:
-            extract_tar(tar_path, transaction_folder, session_id=session_id)
+            extract_with_7zip(tar_path, transaction_folder, session_id=session_id)
         except Exception as e:
-            logger.error(f"Failed to extract tar file: {str(e)}")
-            flash(f"Failed to extract tar file: {str(e)}", 'error')
+            logger.error(f"Failed to extract archive: {str(e)}")
+            flash(f"Failed to extract archive: {str(e)}", 'error')
             return redirect(url_for('employee_bp.dashboard'))
 
         # Log contents of memlogs folder for debugging
@@ -189,16 +229,13 @@ def dashboard():
         def read_file_safely(file_path):
             """Read a file safely, handling potential encoding issues."""
             try:
-                # First, try reading as UTF-8
                 with open(file_path, 'r', encoding='utf-8') as f:
                     return f.read()
             except UnicodeDecodeError as e:
                 logger.warning(f"Failed to decode {file_path} as UTF-8: {str(e)}")
-                # Fall back to reading as binary and decoding with error handling
                 try:
                     with open(file_path, 'rb') as f:
                         content = f.read()
-                    # Decode with 'replace' to handle invalid characters
                     return content.decode('utf-8', errors='replace')
                 except Exception as e:
                     logger.error(f"Failed to read {file_path} even with error handling: {str(e)}")
@@ -220,6 +257,17 @@ def dashboard():
                 return redirect(url_for('employee_bp.dashboard'))
 
             lines = content.splitlines()
+            # Log the first 20 lines of tech-support.log to verify format
+            logger.debug(f"First 20 lines of tech-support.log:\n{chr(10).join(lines[:20])}")
+            # Search for the exact markers
+            for i, line in enumerate(lines):
+                line_lower = line.lower()
+                if 'show running-config' in line_lower or 'show running config' in line_lower:
+                    logger.debug(f"Exact match for 'show running-config' at line {i}: {line}")
+                if 'show vrrp stats all' in line_lower:
+                    logger.debug(f"Exact match for 'show vrrp stats all' at line {i}: {line}")
+                if 'show ap active' in line_lower:
+                    logger.debug(f"Exact match for 'show ap active' at line {i}: {line}")
         else:
             logger.error(f"tech-support.log not found in {transaction_folder}")
             flash('tech-support.log not found.', 'error')
@@ -231,50 +279,61 @@ def dashboard():
             i = 0
             while i < len(lines):
                 line = lines[i].strip()
-                # Extract "show running-config" block
-                if line == "show running-config":
+                line_lower = line.lower()
+                # Match variations of "show running-config"
+                if 'show running-config' in line_lower or 'show running config' in line_lower:
                     block = [line]
+                    logger.debug(f"Found 'show running-config' at line {i}: {line}")
                     i += 1
                     while i < len(lines):
                         next_line = lines[i].strip()
+                        next_line_lower = next_line.lower()
                         block.append(next_line)
-                        if next_line == "end":
+                        if next_line_lower == "end":
+                            logger.debug(f"Found 'end' at line {i}")
                             break
                         i += 1
                     ccr_content.append("\n".join(block))
-                # Extract "show vrrp stats all" block
-                elif line == "show vrrp stats all":
+                # Match "show vrrp stats all"
+                elif 'show vrrp stats all' in line_lower:
                     block = [line]
+                    logger.debug(f"Found 'show vrrp stats all' at line {i}")
                     i += 1
                     while i < len(lines):
                         next_line = lines[i].strip()
-                        if next_line.startswith("show"):
+                        next_line_lower = next_line.lower()
+                        if next_line_lower.startswith("show"):
+                            logger.debug(f"Found next 'show' command at line {i}: {next_line}")
                             break
                         block.append(next_line)
                         i += 1
                     ccr_content.append("\n".join(block))
-                # Extract "show ap active" block
-                elif line == "show ap active":
+                # Match "show ap active"
+                elif 'show ap active' in line_lower:
                     block = [line]
+                    logger.debug(f"Found 'show ap active' at line {i}")
                     i += 1
                     while i < len(lines):
                         next_line = lines[i].strip()
-                        if next_line.startswith("show"):
+                        next_line_lower = next_line.lower()
+                        if next_line_lower.startswith("show"):
+                            logger.debug(f"Found next 'show' command at line {i}: {next_line}")
                             break
                         block.append(next_line)
                         i += 1
                     ccr_content.append("\n".join(block))
                 i += 1
 
-            if ccr_content:
-                ccr_input_path = os.path.join(input_folder, 'CCR_input.txt')
-                with open(ccr_input_path, 'w', encoding='utf-8') as f:
+            ccr_input_path = os.path.join(input_folder, 'CCR_input.txt')
+            with open(ccr_input_path, 'w', encoding='utf-8') as f:
+                if ccr_content:
                     f.write("\n\n".join(ccr_content))
-                logger.debug(f"Generated CCR input with {len(ccr_content)} blocks")
-                logger.debug(f"Input file created for CCR: {ccr_input_path}")
-            else:
-                logger.warning(f"No relevant blocks found for CCR in tech-support.log")
-                flash('No relevant blocks found for CCR in tech-support.log.', 'warning')
+                    logger.debug(f"Generated CCR input with {len(ccr_content)} blocks")
+                else:
+                    f.write("No relevant blocks found for CCR.")
+                    logger.warning(f"No relevant blocks found for CCR in tech-support.log")
+                    flash('No relevant blocks found for CCR in tech-support.log.', 'warning')
+            logger.debug(f"Input file created for CCR: {ccr_input_path}")
 
         # CHR Script: Extract only "show running-config" block
         if 'chr' in script_options:
@@ -282,28 +341,33 @@ def dashboard():
             i = 0
             while i < len(lines):
                 line = lines[i].strip()
-                if line == "show running-config":
+                line_lower = line.lower()
+                if 'show running-config' in line_lower or 'show running config' in line_lower:
                     block = [line]
+                    logger.debug(f"Found 'show running-config' for CHR at line {i}: {line}")
                     i += 1
                     while i < len(lines):
                         next_line = lines[i].strip()
+                        next_line_lower = next_line.lower()
                         block.append(next_line)
-                        if next_line == "end":
+                        if next_line_lower == "end":
+                            logger.debug(f"Found 'end' for CHR at line {i}")
                             break
                         i += 1
                     chr_content.append("\n".join(block))
                     break  # Only need the first occurrence
                 i += 1
 
-            if chr_content:
-                chr_input_path = os.path.join(input_folder, 'CHR_input.txt')
-                with open(chr_input_path, 'w', encoding='utf-8') as f:
+            chr_input_path = os.path.join(input_folder, 'CHR_input.txt')
+            with open(chr_input_path, 'w', encoding='utf-8') as f:
+                if chr_content:
                     f.write(chr_content[0])
-                logger.debug(f"Generated CHR input with show running-config block")
-                logger.debug(f"Input file created for CHR: {chr_input_path}")
-            else:
-                logger.warning(f"No show running-config block found for CHR in tech-support.log")
-                flash('No show running-config block found for CHR in tech-support.log.', 'warning')
+                    logger.debug(f"Generated CHR input with show running-config block")
+                else:
+                    f.write("No show running-config block found for CHR.")
+                    logger.warning(f"No show running-config block found for CHR in tech-support.log")
+                    flash('No show running-config block found for CHR in tech-support.log.', 'warning')
+            logger.debug(f"Input file created for CHR: {chr_input_path}")
 
         # BUCKET Script: Use the complete tech-support.log
         if 'bucket' in script_options:
@@ -327,7 +391,9 @@ def dashboard():
                     if not os.path.exists(target_dir):
                         logger.debug(f"Directory {target_dir} does not exist, skipping for KEYWORD script")
                         continue
-                    for root, _, files in os.walk(target_dir):
+                    logger.debug(f"Scanning directory for KEYWORD: {target_dir}")
+                    for root, dirs, files in os.walk(target_dir):
+                        logger.debug(f"Walking directory: {root}, dirs: {dirs}, files: {files}")
                         for file in files:
                             file_path = os.path.join(root, file)
                             try:
@@ -337,11 +403,20 @@ def dashboard():
                             except Exception as e:
                                 logger.error(f"Error accessing file {file_path} for KEYWORD script: {str(e)}")
                                 continue
+                # Write JSON atomically and validate
                 keyword_input_path = os.path.join(input_folder, 'keyword_input.json')
-                with open(keyword_input_path, 'w', encoding='utf-8') as f:
+                temp_keyword_path = keyword_input_path + '.tmp'
+                with open(temp_keyword_path, 'w', encoding='utf-8') as f:
                     json.dump(keyword_input, f, indent=2)
+                os.rename(temp_keyword_path, keyword_input_path)
+                # Validate JSON
+                with open(keyword_input_path, 'r', encoding='utf-8') as f:
+                    json.load(f)  # This will raise an error if JSON is invalid
                 logger.debug(f"Generated Keyword input dataset with {len(keyword_input)} files")
                 logger.debug(f"Input file created for KEYWORD: {keyword_input_path}")
+            except json.JSONDecodeError as e:
+                logger.error(f"Generated keyword_input.json is invalid: {str(e)}")
+                flash(f"KEYWORD input file is invalid JSON: {str(e)}", 'error')
             except Exception as e:
                 logger.error(f"Failed to generate keyword_input.json: {str(e)}")
                 flash(f"Failed to generate KEYWORD input file: {str(e)}", 'error')

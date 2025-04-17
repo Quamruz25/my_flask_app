@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+<div style="padding: 50px;">
+  <h2>CCR Result</h2>
+  <p>Output generated from the CCR script.</p>
+  <p>
+    <a href="{{ url_for('employee_bp.download_output', file_path=output_html) }}" target="_blank">View Output</a> |
+    <a href="{{ url_for('employee_bp.download_output', file_path=output_html) }}">Download Output</a> |
+    <a href="{{ url_for('employee_bp.email_output', file_path=output_html, script='CCR') }}">Email Output</a>
+  </p>
+  <br>
+  <a href="{{ url_for('employee_bp.employee_dashboard') }}">Back to Dashboard</a>
+</div>
+{% endblock %}

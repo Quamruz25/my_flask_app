@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block content %}
+<div style="padding: 50px;">
+  <h2>Admin Dashboard</h2>
+  <h3>Pending Users</h3>
+  <ul>
+    {% for user in pending_users %}
+      <li>{{ user.email }}
+        <form method="POST" action="{{ url_for('admin_bp.enable_user', user_id=user.id) }}" style="display:inline;">
+          <button type="submit" style="padding:5px 10px;">Enable</button>
+        </form>
+      </li>
+    {% endfor %}
+  </ul>
+  <h3>Session Statistics</h3>
+  <p>Total Sessions: {{ sessions|length }}</p>
+  <table style="width:100%; border-collapse: collapse;">
+    <tr>
+      <th>Session ID</th>
+      <th>Username</th>
+      <th>Case Number</th>
+      <th>Upload Time</th>
+      <th>Transaction Folder</th>
+    </tr>
+    {% for s in sessions %}
+      <tr>
+        <td>{{ s.session_id }}</td>
+        <td>{{ s.username }}</td>
+        <td>{{ s.case_number }}</td>
+        <td>{{ s.upload_timestamp }}</td>
+        <td>{{ s.transaction_folder }}</td>
+      </tr>
+    {% endfor %}
+  </table>
+  <br>
+  <a href="{{ url_for('auth_bp.index') }}">Back to Index</a>
+</div>
+{% endblock %}

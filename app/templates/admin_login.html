@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+<div style="text-align: center; padding: 50px;">
+  <h2>Admin Login</h2>
+  <form method="POST" action="{{ url_for('admin_bp.login') }}" style="margin-top: 20px;">
+    <label>Email:</label><br>
+    <input type="email" name="email" required style="width:300px; padding:5px;"><br><br>
+    <label>Password:</label><br>
+    <input type="password" name="password" required style="width:300px; padding:5px;"><br><br>
+    <button type="submit" style="padding:10px 20px;">Login</button>
+  </form>
+  <br>
+  <a href="{{ url_for('root') }}">Back to Index</a>
+</div>
+{% endblock %}

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HPE Aruba Intelligence</title>
+  <style>
+    body {
+      font-family: Candara, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f4;
+    }
+    .header {
+      background-color: #d3d3d3;
+      padding: 10px;
+      text-align: center;
+      font-size: 30px;
+      font-weight: bold;
+    }
+    .logo {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+    }
+    .logo img {
+      height: 90px;
+      width: auto;
+    }
+    .container {
+      max-width: 945px;
+      margin: 20px auto;
+      padding: 20px;
+      background-color: #fff;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    .footer {
+      background-color: #d3d3d3;
+      padding: 10px;
+      text-align: center;
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+    }
+    /* Dropdown Menu Styles */
+    .menu {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+    }
+    .dropdown {
+      position: relative;
+      display: inline-block;
+    }
+    .dropbtn {
+      font-family: Candara, sans-serif;
+      padding: 5px 10px;
+      font-size: 18px;
+      cursor: pointer;
+      background-color: #d3d3d3;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+    }
+    .dropbtn:hover {
+      background-color: #c0c0c0;
+    }
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      right: 0;
+      background-color: #f9f9f9;
+      min-width: 160px;
+      box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+      z-index: 1;
+      border-radius: 3px;
+    }
+    .dropdown-content a {
+      color: #010e01;
+      padding: 12px 16px;
+      text-decoration: none;
+      display: block;
+    }
+    .dropdown-content a:hover {
+      background-color: #f1f1f1;
+    }
+    .dropdown:hover .dropdown-content {
+      display: block;
+    }
+    /* Flash Message Styles */
+    .flash-message {
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 5px;
+      font-family: Candara, sans-serif;
+      text-align: center;
+    }
+    .flash-success {
+      color: #2e7d32;
+      background-color: #e8f5e9;
+      border: 1px solid #2e7d32;
+    }
+    .flash-danger {
+      color: #d32f2f;
+      background-color: #ffebee;
+      border: 1px solid #d32f2f;
+    }
+    .flash-warning {
+      color: #f57c00;
+      background-color: #fff3e0;
+      border: 1px solid #f57c00;
+    }
+  </style>
+</head>
+<body>
+  <div class="logo">
+    <img src="{{ url_for('static', filename='images/hpe-logo.png') }}" alt="Hewlett Packard Enterprise Logo">
+  </div>
+  <div class="menu">
+    <div class="dropdown">
+      <br>
+      <button class="dropbtn">☰</button>
+      <div class="dropdown-content">
+        <a href="http://iaptools.arubanetworks.com:8080/job/Onboard-AP-Recorder/" target="_blank">Onboard-AP Recorder</a>
+        <a href="https://wifimanish.blogspot.com/2023/09/wifimanish.blogspot.com.html" target="_blank">Manish Tech Blog</a>
+      </div>
+    </div>
+  </div>
+  <br><br><br><br><br>
+  <div class="header">WELCOME TO HPE ARUBA INTELLIGENCE</div>
+  <br><br>
+  <div class="container">
+    {% block content %}
+    <!-- Child templates will insert content here -->
+    {% endblock %}
+  </div>
+  <div class="footer">
+    <strong>POWERED BY</strong> - HPE ARUBA PREMIUM SERVICES<br><br>
+    <strong>Contact Person</strong> <a href="mailto:mksharma@hpe.com">Manish Sharma</a> & <a href="mailto:quamruz.subhani@hpe.com">Quamruz Subhani</a>
+  </div>
+  {% block scripts %}
+  <!-- Child templates can include additional scripts here -->
+  {% endblock %}
+</body>
+</html>

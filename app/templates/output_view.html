@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Output View</title>
+</head>
+<body>
+    <h1>Output for Session {{ session.session_id }}</h1>
+    <p>Case Number: {{ session.case_number }}</p>
+    <p>Uploaded: {{ session.upload_timestamp }}</p>
+    
+    <h2>Reports</h2>
+    {% if output_files %}
+        <ul>
+            {% if output_files['ccr.html'] %}
+                <li><a href="{{ url_for('employee_bp.download_output', file_path=output_files['ccr.html']) }}">Download CCR Report</a></li>
+            {% endif %}
+            {% if output_files['chr.html'] %}
+                <li><a href="{{ url_for('employee_bp.download_output', file_path=output_files['chr.html']) }}">Download CHR Report</a></li>
+            {% endif %}
+            {% if output_files['bucket.html'] %}
+                <li><a href="{{ url_for('employee_bp.download_output', file_path=output_files['bucket.html']) }}">Download Bucket Report</a></li>
+            {% endif %}
+            {% if output_files['keywordsearch.html'] %}
+                <li><a href="{{ url_for('employee_bp.download_output', file_path=output_files['keywordsearch.html']) }}">Download Keyword Report</a></li>
+            {% endif %}
+        </ul>
+    {% else %}
+        <p>No reports available.</p>
+    {% endif %}
+    
+    <p><a href="{{ url_for('employee_bp.historical') }}">Back to Historical Sessions</a></p>
+    <p><a href="{{ url_for('employee_bp.employee_dashboard') }}">Back to Dashboard</a></p>
+    <p><a href="{{ url_for('auth_bp.logout') }}">Logout</a></p>
+</body>
+</html>

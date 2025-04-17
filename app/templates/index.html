@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container" style="text-align: center; padding: 50px;">
+  <h1>Welcome to HPE Aruba Intelligence</h1>
+  <p>Please choose an option below:</p>
+  <div style="margin-top: 20px;">
+    <a href="{{ url_for('auth_bp.login') }}" style="margin: 0 20px;">Employee Login</a>
+    <a href="{{ url_for('auth_bp.register') }}" style="margin: 0 20px;">Employee Registration</a>
+    <a href="{{ url_for('admin_bp.login') }}" style="margin: 0 20px;">Admin Login</a>
+  </div>
+</div>
+{% endblock %}

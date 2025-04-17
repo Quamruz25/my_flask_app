@@ -1,0 +1,37 @@
+{
+    "CCR": {
+      "display_name": "CCR",
+      "input_filename": "show_running_config_ccr.txt",
+      "options": {
+        "with_default": {
+          "display_name": "With Default Profiles",
+          "script_path": "/opt/my_flask_app/scripts/CCR/Script-with-Default-Profile.py",
+          "output_filename": "ccr_with_default.html"
+        },
+        "skip_default": {
+          "display_name": "Skip Default Profiles",
+          "script_path": "/opt/my_flask_app/scripts/CCR/Script-Skip-Default-Profile.py",
+          "output_filename": "ccr_skip_default.html"
+        }
+      }
+    },
+    "CHR": {
+      "display_name": "CHR",
+      "input_filename": "show_running_config_chr.txt",
+      "script_path": "/opt/my_flask_app/scripts/CHR/script_chr.py",
+      "output_filename": "chr_output.html"
+    },
+    "KeyWord": {
+      "display_name": "Keyword Search",
+      "needs_entire_tar": true,
+      "script_path": "/opt/my_flask_app/scripts/KeyWord/script_keyword.py",
+      "output_filename": "keyword_search.html",
+      "extra_dataset_filename": "keyword_dataset.csv"
+    },
+    "Bucket": {
+      "display_name": "Bucket",
+      "script_path": "/opt/my_flask_app/scripts/Bucket/script_bucket.py",
+      "output_filename": "bucket_out.html"
+    }
+  }
+  

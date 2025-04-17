@@ -1,0 +1,16 @@
+<!-- Location: /opt/my_flask_app/app/templates/home.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Home - HPE Aruba Intelligence</title>
+  <style>
+    body { font-family: Arial, sans-serif; background-color: #f4f4f4; text-align: center; padding: 50px; }
+    a { margin: 0 10px; }
+  </style>
+</head>
+<body>
+  <h1>Welcome to HPE Aruba Intelligence</h1>
+  <a href="{{ url_for('auth_bp.login') }}">Login</a> | <a href="{{ url_for('auth_bp.register') }}">Register</a>
+</body>
+</html>

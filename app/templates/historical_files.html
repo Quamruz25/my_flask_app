@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+<div style="text-align: center; padding: 20px;">
+  <h1>Historical Sessions</h1>
+  <table style="width:100%; border-collapse: collapse; border: 1px solid #ddd;">
+    <tr style="background-color: #f2f2f2;">
+      <th style="border: 1px solid #ddd; padding: 8px;">Session ID</th>
+      <th style="border: 1px solid #ddd; padding: 8px;">Case Number</th>
+      <th style="border: 1px solid #ddd; padding: 8px;">Upload Time</th>
+      <th style="border: 1px solid #ddd; padding: 8px;">Upload Folder</th>
+      <th style="border: 1px solid #ddd; padding: 8px;">Filename</th>
+      <th style="border: 1px solid #ddd; padding: 8px;">Actions</th>
+    </tr>
+    {% for upload in uploads %}
+      <tr>
+        <td style="border: 1px solid #ddd; padding: 8px;">{{ upload.session_id }}</td>
+        <td style="border: 1px solid #ddd; padding: 8px;">{{ upload.case_number }}</td>
+        <td style="border: 1px solid #ddd; padding: 8px;">{{ upload.upload_time }}</td>
+        <td style="border: 1px solid #ddd; padding: 8px;">{{ upload.upload_folder }}</td>
+        <td style="border: 1px solid #ddd; padding: 8px;">{{ upload.filename }}</td>
+        <td style="border: 1px solid #ddd; padding: 8px;">
+          <a href="{{ url_for('employee_bp.output_view', session_id=upload.session_id) }}">Download Outputs</a>
+ 
+        </td>
+      </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endblock %}

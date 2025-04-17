@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% block content %}
+<div style="text-align: center; padding: 20px;">
+  <h2>Employee Dashboard</h2>
+  
+  <!-- Navigation Links -->
+  <div style="margin-bottom: 20px;">
+    <a href="{{ url_for('employee_bp.historical') }}" style="margin: 0 20px;">Historical Sessions</a>
+    <a href="{{ url_for('employee_bp.logout') }}" style="margin: 0 20px;">Logout</a>
+  </div>
+  
+  {% if not tar_extracted %}
+  <!-- Upload Form Section -->
+  <form id="uploadForm" method="POST" enctype="multipart/form-data" action="{{ url_for('employee_bp.dashboard') }}" style="display: inline-block; text-align: left;">
+    <label><strong>Case Number (optional):</strong></label><br>
+    <input type="text" name="case_number" style="width:300px; padding:5px;"><br><br>
+    
+    <label class="custom-file-upload">
+      <input type="file" name="tar_file" id="tarFileInput" required />
+      <strong>CHOOSE FILE</strong>
+    </label>
+    <span id="fileName" style="margin-left: 10px;">No file chosen</span>
+    <br><br>
+    
+    <p><strong>Please upload the 'logs.tar' file and select the tools you would like to use for data analysis.</strong></p>
+    
+    <label style="display: block; margin: 10px 0;">
+      <input type="checkbox" name="script_option" value="ccr" checked>
+      <strong>Config Cleanup Recommender</strong> - analyzes and highlights unused profiles.
+    </label>
+    <label style="display: block; margin: 10px 0;">
+      <input type="checkbox" name="script_option" value="chr" checked>
+      <strong>Config Hierarchy</strong> - provides a nested view of configured profiles.
+    </label>
+    <label style="display: block; margin: 10px 0;">
+      <input type="checkbox" name="script_option" value="bucket" checked>
+      <strong>TechSupport Splitter</strong> - divides the tech-support file into categorized sub-buckets.
+    </label>
+    <label style="display: block; margin: 10px 0;">
+      <input type="checkbox" name="script_option" value="keyword" checked>
+      <strong>Keyword Search</strong> - searches keywords across the untarred files.
+    </label>
+    
+    <br>
+    <button type="submit" style="padding:10px 20px;"><strong>UPLOAD</strong></button>
+  </form>
+  
+  <script>
+    const tarFileInput = document.getElementById('tarFileInput');
+    const fileNameSpan = document.getElementById('fileName');
+    if(tarFileInput) {
+      tarFileInput.addEventListener('change', function() {
+        if(tarFileInput.files.length > 0) {
+          fileNameSpan.textContent = tarFileInput.files[0].name;
+        } else {
+          fileNameSpan.textContent = 'No file chosen';
+        }
+      });
+    }
+  </script>
+  
+  {% else %}
+  <!-- Results Section: Display links for each script -->
+  <h3>Script Outputs</h3>
+  <table style="width:100%; border-collapse: collapse; margin-top: 20px;">
+    <thead>
+      <tr style="background-color: #d3d3d3;">
+        <th style="padding: 8px;">Script</th>
+        <th style="padding: 8px;">View</th>
+        <th style="padding: 8px;">Download</th>
+        <th style="padding: 8px;">Email</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% if output_files['CCR'] %}
+      <tr>
+        <td style="padding: 8px; text-align: center;">CCR</td>
+        <td style="padding: 8px; text-align: center;">
+          <a href="{{ url_for('employee_bp.serve_static', session_id=session_id, script='ccr') }}" target="_blank">View</a>
+        </td>
+        <td style="padding: 8px; text-align: center;">
+          <a href="{{ url_for('employee_bp.download_output', session_id=session_id, script='ccr') }}">Download</a>
+        </td>
+        <td style="padding: 8px; text-align: center;">
+          <a href="{{ url_for('employee_bp.email_output', session_id=session_id, script='ccr') }}">Email</a>
+        </td>
+      </tr>
+      {% endif %}
+      {% if output_files['CHR'] %}
+      <tr>
+        <td style="padding: 8px; text-align: center;">CHR</td>
+        <td style="padding: 8px; text-align: center;">
+          <a href="{{ url_for('employee_bp.serve_static', session_id=session_id, script='chr') }}" target="_blank">View</a>
+        </td>
+        <td style="padding: 8px; text-align: center;">
+          <a href="{{ url_for('employee_bp.download_output', session_id=session_id, script='chr') }}">Download</a>
+        </td>
+        <td style="padding: 8px; text-align: center;">
+          <a href="{{ url_for('employee_bp.email_output', session_id=session_id, script='chr') }}">Email</a>
+        </td>
+      </tr>
+      {% endif %}
+      {% if output_files['BUCKET'] %}
+      <tr>
+        <td style="padding: 8px; text-align: center;">Bucket</td>
+        <td style="padding: 8px; text-align: center;">
+          <a href="{{ url_for('employee_bp.serve_static', session_id=session_id, script='bucket') }}" target="_blank">View</a>
+        </td>
+        <td style="padding: 8px; text-align: center;">
+          <a href="{{ url_for('employee_bp.download_output', session_id=session_id, script='bucket') }}">Download</a>
+        </td>
+        <td style="padding: 8px; text-align: center;">
+          <a href="{{ url_for('employee_bp.email_output', session_id=session_id, script='bucket') }}">Email</a>
+        </td>
+      </tr>
+      {% endif %}
+      {% if output_files['KEYWORD'] %}
+      <tr>
+        <td style="padding: 8px; text-align: center;">Keyword</td>
+        <td style="padding: 8px; text-align: center;">
+          <a href="{{ url_for('employee_bp.serve_static', session_id=session_id, script='keyword') }}" target="_blank">View</a>
+        </td>
+        <td style="padding: 8px; text-align: center;">
+          <a href="{{ url_for('employee_bp.download_output', session_id=session_id, script='keyword') }}">Download</a>
+        </td>
+        <td style="padding: 8px; text-align: center;">
+          <a href="{{ url_for('employee_bp.email_output', session_id=session_id, script='keyword') }}">Email</a>
+        </td>
+      </tr>
+      {% endif %}
+    </tbody>
+  </table>
+  
+  <br>
+  <button onclick="resetForm()" style="padding:10px 20px;"><strong>RESET</strong></button>
+  <script>
+    function resetForm() {
+      window.location.href = "{{ url_for('employee_bp.dashboard') }}";
+    }
+  </script>
+  {% endif %}
+</div>
+{% endblock %}

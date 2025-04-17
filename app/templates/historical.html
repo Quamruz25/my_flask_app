@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block content %}
+<div style="text-align: center; padding: 20px;">
+  <h2>Historical Sessions</h2>
+  
+  <!-- Navigation Links -->
+  <div style="margin-bottom: 20px;">
+    <a href="{{ url_for('employee_bp.employee_dashboard') }}" style="margin: 0 20px;">Back to Dashboard</a>
+    <a href="{{ url_for('auth_bp.logout') }}" style="margin: 0 20px;">Logout</a>
+  </div>
+  
+  {% if sessions %}
+    <table style="width:100%; border-collapse: collapse; margin-top: 20px;">
+      <thead>
+        <tr style="background-color: #d3d3d3;">
+          <th style="padding: 8px;">Session ID</th>
+          <th style="padding: 8px;">Case Number</th>
+          <th style="padding: 8px;">Upload Time</th>
+          <th style="padding: 8px;">Outputs</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for session in sessions %}
+          <tr>
+            <td style="padding: 8px; text-align: center;">{{ session.session_id }}</td>
+            <td style="padding: 8px; text-align: center;">{{ session.case_number }}</td>
+            <td style="padding: 8px; text-align: center;">{{ session.upload_timestamp }}</td>
+            <td style="padding: 8px; text-align: center;">
+              {% set output_dir = session.transaction_folder + '/output' %}
+              {% set ccr_file = output_dir + '/ccr.html' %}
+              {% set chr_file = output_dir + '/chr.html' %}
+              {% set bucket_file = output_dir + '/bucket.html' %}
+              {% set keyword_file = output_dir + '/keywordsearch.html' %}
+              
+              {% if ccr_file is exists %}
+                <strong>CCR:</strong>
+                <a href="{{ url_for('employee_bp.view_output', file_path=ccr_file) }}" target="_blank">View</a> |
+                <a href="{{ url_for('employee_bp.download_output', file_path=ccr_file) }}">Download</a> |
+                <a href="{{ url_for('employee_bp.email_output', file_path=ccr_file, script='CCR') }}">Email</a><br>
+              {% endif %}
+              {% if chr_file is exists %}
+                <strong>CHR:</strong>
+                <a href="{{ url_for('employee_bp.view_output', file_path=chr_file) }}" target="_blank">View</a> |
+                <a href="{{ url_for('employee_bp.download_output', file_path=chr_file) }}">Download</a> |
+                <a href="{{ url_for('employee_bp.email_output', file_path=chr_file, script='CHR') }}">Email</a><br>
+              {% endif %}
+              {% if bucket_file is exists %}
+                <strong>Bucket:</strong>
+                <a href="{{ url_for('employee_bp.view_output', file_path=bucket_file) }}" target="_blank">View</a> |
+                <a href="{{ url_for('employee_bp.download_output', file_path=bucket_file) }}">Download</a> |
+                <a href="{{ url_for('employee_bp.email_output', file_path=bucket_file, script='Bucket') }}">Email</a><br>
+              {% endif %}
+              {% if keyword_file is exists %}
+                <strong>Keyword:</strong>
+                <a href="{{ url_for('employee_bp.view_output', file_path=keyword_file) }}" target="_blank">View</a> |
+                <a href="{{ url_for('employee_bp.download_output', file_path=keyword_file) }}">Download</a> |
+                <a href="{{ url_for('employee_bp.email_output', file_path=keyword_file, script='Keyword') }}">Email</a><br>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>No historical sessions found.</p>
+  {% endif %}
+</div>
+{% endblock %}

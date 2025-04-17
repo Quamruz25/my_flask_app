@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container" style="padding: 20px;">
+    <h2>Admin Dashboard</h2>
+    <p>Welcome, {{ current_user.email }}!</p>
+    
+    <h3>Pending User Approvals</h3>
+    {% if pending_users %}
+        <table border="1">
+            <tr>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Action</th>
+            </tr>
+            {% for user in pending_users %}
+                <tr>
+                    <td>{{ user.email }}</td>
+                    <td>{{ user.role }}</td>
+                    <td>
+                        <form method="POST" action="{{ url_for('admin_bp.enable_user', user_id=user.id) }}">
+                            <button type="submit">Enable</button>
+                        </form>
+                    </td>
+                </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <p>No pending users.</p>
+    {% endif %}
+    
+    <h3>Total Registered Users</h3>
+    <p>{{ total_users }}</p>
+    
+    <h3>Session Statistics</h3>
+    <h4>Sessions Per Day</h4>
+    {% if sessions_per_day %}
+        <ul>
+        {% for date, count in sessions_per_day %}
+            <li>{{ date }}: {{ count }} sessions</li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>No daily session data available.</p>
+    {% endif %}
+    
+    <h4>Sessions Per Week</h4>
+    {% if sessions_per_week %}
+        <ul>
+        {% for week, count in sessions_per_week %}
+            <li>Week {{ week }}: {{ count }} sessions</li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>No weekly session data available.</p>
+    {% endif %}
+    
+    <h4>Sessions Per Month</h4>
+    {% if sessions_per_month %}
+        <ul>
+        {% for month, count in sessions_per_month %}
+            <li>{{ month }}: {{ count }} sessions</li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>No monthly session data available.</p>
+    {% endif %}
+    
+    <h4>Sessions Per Year</h4>
+    {% if sessions_per_year %}
+        <ul>
+        {% for year, count in sessions_per_year %}
+            <li>{{ year }}: {{ count }} sessions</li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>No yearly session data available.</p>
+    {% endif %}
+    
+    <br>
+    <a href="{{ url_for('admin_bp.logout') }}">Logout</a>
+</div>
+{% endblock %}

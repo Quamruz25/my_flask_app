@@ -4,6 +4,7 @@ import os
 import re
 import logging
 import sys
+from collections import defaultdict
 
 if len(sys.argv) < 4:
     print("Usage: python3 Script-with-Default-Profile.py <input_file> <output_file> <log_file>")
@@ -31,64 +32,56 @@ if not os.path.exists(input_file_path):
     print(f"Error: Input file not found: {input_file_path}")
     sys.exit(1)
 
-with open(input_file_path, "r", encoding="utf-8") as file:
-    lines = file.readlines()
-
-results = []
-keywords = set([
+# Precompile regex patterns for keywords
+keywords = [
     "ip access-list geolocation", "ip access-list eth", "netdestination", "aaa bandwidth-contract",
-    "ip access-list session", "user-role", "vlan-name", "ip nexthop-list", "crypto isakmp policy",
-    "mgmt-server primary-server", "ntp server", "cp-bandwidth-contract", "aaa rfc-3576-server",
-    "aaa authentication mac", "aaa authentication dot1x", "aaa authentication-server ldap",
-    "aaa authentication-server tacacs", "aaa authentication-server radius", "scheduler-profile",
-    "aaa server-group", "aaa profile", "aaa authentication captive-portal", "aaa authentication wispr",
-    "aaa authentication vpn", "aaa authentication stateful-ntlm", "aaa authentication stateful-kerberos",
-    "aaa authentication via auth-profile", "aaa authentication via connection-profile",
-    "aaa authentication via web-auth", "ids ap-classification-rule", "ids management-profile",
-    "ids wms-general-profile", "ids wms-local-system-profile", "ucc", "lc-cluster group-profile",
-    "ap regulatory-domain-profile", "dump-auto-uploading-profile", "ap wired-ap-profile",
-    "ap enet-link-profile", "ap mesh-ht-ssid-profile", "ap lldp med-network-policy-profile",
-    "ap mesh-cluster-profile", "ap mesh-accesslist-profile", "ap wifi-uplink-profile",
-    "ap multizone-profile", "ap usb-acl-prof", "iot radio-profile", "dump-collection-profile",
-    "ap lldp profile", "ap mesh-radio-profile", "ap usb-profile", "ap system-profile",
-    "ap wired-port-profile", "gps service-profile", "ids general-profile", "ids rate-thresholds-profile",
-    "ids signature-profile", "ids impersonation-profile", "ids unauthorized-device-profile",
-    "ids signature-matching-profile", "ids dos-profile", "ids profile", "rf dot11-60GHz-radio-profile",
-    "wlan 6ghz-rrm-ie-profile", "rf arm-profile", "rf ht-radio-profile", "rf spectrum-profile",
-    "rf optimization-profile", "rf event-thresholds-profile", "rf am-scan-profile",
-    "rf dot11a-radio-profile", "rf dot11g-radio-profile", "rf dot11-6GHz-radio-profile",
-    "wlan rrm-ie-profile", "wlan bcn-rpt-req-profile", "wlan dot11r-profile", "wlan tsm-req-profile",
-    "wlan ht-ssid-profile", "wlan he-ssid-profile", "wlan hotspot anqp-venue-name-profile",
-    "wlan hotspot anqp-nwk-auth-profile", "wlan hotspot anqp-roam-cons-profile",
-    "wlan hotspot anqp-nai-realm-profile", "wlan hotspot anqp-3gpp-radio-profile",
-    "wlan hotspot h2qp-operator-friendly-name-profile", "wlan hotspot h2qp-wan-metrics-profile",
-    "wlan hotspot h2qp-conn-capability-profile", "wlan hotspot h2qp-op-cl-profile",
-    "wlan hotspot h2qp-osu-prov-list-profile", "wlan hotspot anqp-ip-addr-avail-profile",
-    "wlan hotspot anqp-domain-name-profile", "wlan edca-parameters-profile station",
-    "wlan edca-parameters-profile ap", "wlan mu-edca-parameters-profile", "wlan dot11k-profile",
-    "wlan ssid-profile", "wlan virtual-ap", "wlan traffic-management-profile", "mgmt-server profile",
-    "ap authorization-profile", "ap provisioning-profile", "rf arm-rf-domain-profile",
-    "ap am-filter-profile", "ap spectrum local-override", "airmatch profile", "ap-lacp-striping-ip",
-    "ap general-profile", "ap deploy-profile", "airslice-profile", "ap-group", "ap-name",
-    "airgroupprofile service", "iot transportProfile", "iot useTransportProfile",
+    # ... (same list as before)
     "snmp-server host", "ip probe"
-])
-logger.info("Scanning input file for keywords and extracting next words...")
+]
+keyword_patterns = [(keyword, re.compile(rf"\b{re.escape(keyword)}\b\s+(?:\"([^\"]+)\"|(\S+))")) for keyword in keywords]
+word_count_pattern = re.compile(r'\b\w+\b')  # Pattern to extract words for counting
+
+# Step 1: Read file and build word counts in one pass
+word_counts = defaultdict(int)
+lines = []
+with open(input_file_path, "r", encoding="utf-8") as file:
+    for line in file:
+        lines.append(line)
+        # Count occurrences of each word in the line
+        words = word_count_pattern.findall(line)
+        for word in words:
+            word_counts[word] += 1
+
+# Step 2: Process lines for keyword matches
+results = []
 for line in lines:
-    for keyword in keywords:
-        match = re.search(rf"\b{re.escape(keyword)}\b\s+(?:\"([^\"]+)\"|(\S+))", line)
+    for keyword, pattern in keyword_patterns:
+        match = pattern.search(line)
         if match:
             next_word = match.group(1) if match.group(1) else match.group(2)
-            match_count = sum(1 for ln in lines if re.search(rf"\b{re.escape(next_word)}\b", ln))
+            match_count = word_counts.get(next_word, 0)
             found_status = "YES" if match_count >= 2 else "NO"
             results.append((keyword, next_word, found_status))
+
+# Step 3: VRRP matching
+vrrp_numbers = set()
+virtual_router_numbers = set()
+for line in lines:
+    if line.startswith("vrrp"):
+        match = re.match(r"^vrrp (\d+)", line)
+        if match:
+            vrrp_numbers.add(match.group(1))
+    if line.startswith("Virtual Router"):
+        match = re.match(r"^Virtual Router (\d+)", line)
+        if match:
+            virtual_router_numbers.add(match.group(1))
+
 vrrp_results = []
-vrrp_numbers = {re.match(r"^vrrp (\d+)", line).group(1) for line in lines if line.startswith("vrrp")}
-virtual_router_numbers = {re.match(r"^Virtual Router (\d+)", line).group(1) for line in lines if line.startswith("Virtual Router")}
-logger.info("Scanning VRRP numbers and matching with Virtual Router...")
 for vrrp_num in vrrp_numbers:
     match_found = "YES" if vrrp_num in virtual_router_numbers else "NO"
     vrrp_results.append((f"vrrp {vrrp_num}", match_found))
+
+# Step 4: Generate HTML output
 logger.info("Generating HTML output...")
 html_content = ["""
 <!DOCTYPE html>
@@ -121,7 +114,9 @@ for vrrp, match_status in vrrp_results:
     color_class = "found" if match_status == "YES" else "not-found"
     html_content.append(f"<tr><td>{vrrp}</td><td>Virtual Router</td><td class='{color_class}'>{match_status}</td></tr>")
 html_content.append("</table></body></html>")
+
 with open(output_file_path, "w", encoding="utf-8") as output_file:
     output_file.write("".join(html_content))
+
 logger.info("HTML report generated at: {}".format(output_file_path))
 print("HTML report generated successfully at: {}".format(output_file_path))

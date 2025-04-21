@@ -62,6 +62,7 @@ def extract_with_7zip(tar_path, extract_path, depth=0, max_depth=10, processed_f
         logger.debug(f"Extracted {tar_path} to {extract_path}: {result.stdout}")
 
         # Log the folder structure after extraction
+        # Use os.listdir (not os.path.listdir) to list directory contents
         extracted_contents = os.listdir(extract_path)
         logger.debug(f"Contents of {extract_path} after extraction: {extracted_contents}")
 
@@ -105,6 +106,7 @@ def extract_with_7zip(tar_path, extract_path, depth=0, max_depth=10, processed_f
         if os.path.exists(flash_path):
             os.makedirs(config_path, exist_ok=True)
             # Move contents of flash to config
+            # Use os.listdir (not os.path.listdir) to list directory contents
             flash_contents = os.listdir(flash_path)
             logger.debug(f"Contents of flash folder {flash_path}: {flash_contents}")
             for item in os.listdir(flash_path):
@@ -132,7 +134,7 @@ def run_script_async(command, script_name, output_files, key, output_path, log_f
     start_time = time.time()
     try:
         logger.debug(f"Running {script_name} script with command: {command}")
-        process = subprocess.run(command, shell=True, capture_output=True, text=True, timeout=900)  # 15-minute timeout
+        process = subprocess.run(command, shell=True, capture_output=True, text=True, timeout=1800)  # 30-minute timeout
         elapsed_time = time.time() - start_time
         if process.returncode == 0:
             logger.debug(f"{script_name} script executed successfully in {elapsed_time:.2f} seconds: {process.stdout}")
@@ -143,7 +145,7 @@ def run_script_async(command, script_name, output_files, key, output_path, log_f
             logger.error(f"{script_name} script failed with return code {process.returncode} after {elapsed_time:.2f} seconds: {process.stderr}")
     except subprocess.TimeoutExpired:
         elapsed_time = time.time() - start_time
-        logger.error(f"{script_name} script timed out after 15 minutes (elapsed: {elapsed_time:.2f} seconds)")
+        logger.error(f"{script_name} script timed out after 30 minutes (elapsed: {elapsed_time:.2f} seconds)")
     except Exception as e:
         elapsed_time = time.time() - start_time
         logger.error(f"Error running {script_name} script after {elapsed_time:.2f} seconds: {str(e)}")
@@ -191,9 +193,7 @@ def dashboard():
             session_id=session_id,
             username=current_user.email,
             case_number=case_number,
-            upload_timestamp=datetime.now(),
-            transaction_folder=transaction_folder,
-            script_options=','.join(script_options)  # Store selected scripts
+            transaction_folder=transaction_folder
         )
         db.session.add(session_db)
         db.session.commit()
@@ -210,6 +210,7 @@ def dashboard():
         # Log contents of memlogs folder for debugging
         memlogs_path = os.path.join(transaction_folder, 'var/log/oslog/memlogs')
         if os.path.exists(memlogs_path):
+            # Use os.listdir (not os.path.listdir) to list directory contents
             memlogs_contents = os.listdir(memlogs_path)
             logger.debug(f"Contents of memlogs folder ({memlogs_path}): {memlogs_contents}")
         else:
@@ -218,6 +219,7 @@ def dashboard():
         # Log contents of config folder for debugging
         config_path = os.path.join(transaction_folder, 'config')
         if os.path.exists(config_path):
+            # Use os.listdir (not os.path.listdir) to list directory contents
             config_contents = os.listdir(config_path)
             logger.debug(f"Contents of config folder ({config_path}): {config_contents}")
         else:
@@ -379,7 +381,7 @@ def dashboard():
 
         # KEYWORD Script: Scan specific directories
         if 'keyword' in script_options:
-            keyword_input = []
+            keyword_input = {}
             target_dirs = [
                 os.path.join(transaction_folder, 'flash'),
                 os.path.join(transaction_folder, 'mswitch'),
@@ -398,10 +400,18 @@ def dashboard():
                             file_path = os.path.join(root, file)
                             try:
                                 if os.path.isfile(file_path) and not file.endswith(('.tar', '.tar.gz', '.tgz', '.gz')):
-                                    keyword_input.append(file_path)
+                                    # Read the file content
+                                    with open(file_path, 'r', encoding='utf-8', errors='replace') as f:
+                                        content = f.read().splitlines()
+                                    # Create lowercase version for case-insensitive search
+                                    content_lowercase = [line.lower() for line in content]
+                                    keyword_input[file_path] = {
+                                        "content": content,
+                                        "content_lowercase": content_lowercase
+                                    }
                                     logger.debug(f"Added file to keyword_input: {file_path}")
                             except Exception as e:
-                                logger.error(f"Error accessing file {file_path} for KEYWORD script: {str(e)}")
+                                logger.error(f"Error reading file {file_path} for KEYWORD script: {str(e)}")
                                 continue
                 # Write JSON atomically and validate
                 keyword_input_path = os.path.join(input_folder, 'keyword_input.json')
@@ -411,7 +421,7 @@ def dashboard():
                 os.rename(temp_keyword_path, keyword_input_path)
                 # Validate JSON
                 with open(keyword_input_path, 'r', encoding='utf-8') as f:
-                    json.load(f)  # This will raise an error if JSON is invalid
+                    json.load(f)
                 logger.debug(f"Generated Keyword input dataset with {len(keyword_input)} files")
                 logger.debug(f"Input file created for KEYWORD: {keyword_input_path}")
             except json.JSONDecodeError as e:

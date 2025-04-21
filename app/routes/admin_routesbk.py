@@ -23,13 +23,9 @@ def login():
         user = User.query.filter_by(email=email, role='admin').first()
         if user:
             logger.debug(f"User found: {user.email}, role: {user.role}, enabled: {user.enabled}")
-            if user.enabled == 0:
-                logger.debug(f"User {user.email} is pending approval")
-                flash('Your account is pending approval.')
-                return redirect(url_for('admin_bp.login'))
-            elif user.enabled == 3:
-                logger.debug(f"User {user.email} has been rejected")
-                flash('Your account registration has been rejected. Please contact support.')
+            if not user.enabled:
+                logger.debug(f"User {user.email} is disabled")
+                flash('Your account is disabled.')
                 return redirect(url_for('admin_bp.login'))
             if check_password_hash(user.password_hash, password):
                 logger.debug(f"Password match for {user.email}")
@@ -55,12 +51,8 @@ def admin_dashboard():
     
     try:
         # Get pending users
-        pending_users = User.query.filter_by(enabled=0).all()
+        pending_users = User.query.filter_by(enabled=False).all()
         logger.debug(f"Pending users: {len(pending_users)}")
-        
-        # Get rejected users
-        rejected_users = User.query.filter_by(enabled=3).all()
-        logger.debug(f"Rejected users: {len(rejected_users)}")
         
         # Total registered users
         total_users = User.query.count()
@@ -102,7 +94,6 @@ def admin_dashboard():
         return render_template(
             'admin_dashboard.html',
             pending_users=pending_users,
-            rejected_users=rejected_users,
             total_users=total_users,
             all_sessions=all_sessions,
             sessions_per_day=sessions_per_day,
@@ -123,7 +114,7 @@ def enable_user(user_id):
         return redirect(url_for('auth_bp.login'))
 
     user = User.query.get_or_404(user_id)
-    user.enabled = 1  # Set to approved state
+    user.enabled = True
     try:
         db.session.commit()
 
@@ -140,35 +131,6 @@ def enable_user(user_id):
     except Exception as e:
         db.session.rollback()
         flash(f'Error enabling user: {str(e)}')
-
-    return redirect(url_for('admin_bp.admin_dashboard'))
-
-@admin_bp.route('/reject_user/<int:user_id>', methods=['POST'])
-@login_required
-def reject_user(user_id):
-    if current_user.role != 'admin':
-        flash('Access denied: Admins only.')
-        return redirect(url_for('auth_bp.login'))
-
-    user = User.query.get_or_404(user_id)
-    user.enabled = 3  # Set to rejected state
-    try:
-        db.session.commit()
-
-        # Send rejection email with BCC to admins
-        msg = Message(
-            subject="Account Registration Rejected",
-            recipients=[user.email],
-            bcc=current_app.config['ADMIN_EMAILS'],
-            body=f"Dear {user.email},\n\nYour account registration has been rejected by an admin. Please contact support for more information."
-        )
-        mail.send(msg)
-
-        flash(f'User {user.email} has been rejected.')
-    except Exception as e:
-        db.session.rollback()
-        logger.error(f"Error rejecting user {user.email}: {str(e)}")
-        flash(f'Error rejecting user: {str(e)}')
 
     return redirect(url_for('admin_bp.admin_dashboard'))
 

@@ -17,8 +17,11 @@
                     <td>{{ user.email }}</td>
                     <td>{{ user.role }}</td>
                     <td>
-                        <form method="POST" action="{{ url_for('admin_bp.enable_user', user_id=user.id) }}">
+                        <form method="POST" action="{{ url_for('admin_bp.enable_user', user_id=user.id) }}" style="display:inline;">
                             <button type="submit">Enable</button>
+                        </form>
+                        <form method="POST" action="{{ url_for('admin_bp.reject_user', user_id=user.id) }}" style="display:inline;">
+                            <button type="submit" style="background-color: #d32f2f; color: white;">Reject</button>
                         </form>
                     </td>
                 </tr>
@@ -26,6 +29,26 @@
         </table>
     {% else %}
         <p>No pending users.</p>
+    {% endif %}
+    
+    <h3>Rejected Users</h3>
+    {% if rejected_users %}
+        <table border="1">
+            <tr>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Created At</th>
+            </tr>
+            {% for user in rejected_users %}
+                <tr>
+                    <td>{{ user.email }}</td>
+                    <td>{{ user.role }}</td>
+                    <td>{{ user.created_at }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <p>No rejected users.</p>
     {% endif %}
     
     <h3>Total Registered Users</h3>

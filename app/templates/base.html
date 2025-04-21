@@ -26,6 +26,7 @@
     .logo img {
       height: 90px;
       width: auto;
+      display: block; /* Ensure the image is visible */
     }
     .container {
       max-width: 945px;
@@ -114,7 +115,7 @@
 </head>
 <body>
   <div class="logo">
-    <img src="{{ url_for('static', filename='images/hpe-logo.png') }}" alt="Hewlett Packard Enterprise Logo">
+    <img src="{{ url_for('static', filename='images/hpe-logo.png') }}" alt="HPE Aruba Logo" onerror="this.onerror=null; this.src='/static/images/hpe-logo.png'; console.error('Failed to load logo from url_for, fallback used');">
   </div>
   <div class="menu">
     <div class="dropdown">

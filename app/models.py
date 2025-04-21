@@ -10,7 +10,7 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
     role = db.Column(db.String(20), nullable=False)  # 'admin' or 'employee'
-    enabled = db.Column(db.Boolean, default=False, nullable=False)
+    enabled = db.Column(db.Integer, default=0, nullable=False)  # 0: Pending, 1: Approved, 3: Rejected
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
     def __repr__(self):
@@ -23,7 +23,7 @@ class User(UserMixin, db.Model):
 
     @property
     def is_active(self):
-        return self.enabled
+        return self.enabled == 1
 
     @property
     def is_anonymous(self):

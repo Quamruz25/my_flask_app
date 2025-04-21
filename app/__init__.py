@@ -1,6 +1,6 @@
 # Location: /opt/my_flask_app/app/__init__.py
 import os
-from flask import Flask, render_template, redirect, url_for
+from flask import Flask, render_template, redirect, url_for, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
@@ -37,6 +37,11 @@ def create_app():
     app.config['MAIL_DEFAULT_SENDER'] = MAIL_DEFAULT_SENDER
     app.config['ADMIN_EMAILS'] = ADMIN_EMAILS
     app.config['SEVEN_ZIP_CMD'] = SEVEN_ZIP_CMD
+    
+    # Log the static folder path for debugging
+    app_logger = logging.getLogger('app')
+    app_logger.debug(f"Static folder: {app.static_folder}")
+    app_logger.debug(f"Static URL path: {app.static_url_path}")
     
     # Initialize extensions
     db.init_app(app)
@@ -110,6 +115,12 @@ def create_app():
     def root():
         app_logger.debug("Root route accessed, rendering index.html")
         return render_template('index.html')
+    
+    # Add a test route to serve the logo directly
+    @app.route('/test-logo')
+    def test_logo():
+        app_logger.debug("Test logo route accessed")
+        return send_from_directory(app.static_folder, 'images/hpe-logo.png')
     
     return app
 

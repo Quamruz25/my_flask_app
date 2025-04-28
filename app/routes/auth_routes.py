@@ -41,10 +41,10 @@ def register():
 
             # Send confirmation email with BCC to admins
             msg = Message(
-                subject="Registration Successful",
+                subject="Registration Successful – HPE Aruba Intelligence (HAI)",
                 recipients=[email],
                 bcc=current_app.config['ADMIN_EMAILS'],
-                body=f"Welcome to the Flask App, {email}!\n\nYour account has been created as an employee. Please wait for admin approval to log in."
+                body=f"Thank you for registering with HPE Aruba Intelligence (HAI), {email}!\n\nYour account has been created as an employee. Please wait for admin review and approval before you can log in."
             )
             try:
                 logger.debug(f"Sending registration email to {email}, BCC: {current_app.config['ADMIN_EMAILS']}")

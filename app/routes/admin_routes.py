@@ -130,10 +130,10 @@ def enable_user(user_id):
 
         # Send approval email with BCC to admins
         msg = Message(
-            subject="Account Approved",
+            subject="Account Approved – Welcome to HPE Aruba Intelligence (HAI)",
             recipients=[user.email],
             bcc=current_app.config['ADMIN_EMAILS'],
-            body=f"Dear {user.email},\n\nYour account has been approved by an admin. You can now log in to the HPE Aruba Intelligence platform."
+            body=f"Dear {user.email},\n\nWelcome to HPE Aruba Intelligence (HAI)!\n\nYour account has been successfully approved. You can now log in and start using the HPE Aruba intelligence platform."
         )
         try:
             logger.debug(f"Sending approval email to {user.email}, BCC: {current_app.config['ADMIN_EMAILS']}")
@@ -165,10 +165,10 @@ def reject_user(user_id):
 
         # Send rejection email with BCC to admins
         msg = Message(
-            subject="Account Registration Rejected",
+            subject="Registration Rejected – HPE Aruba Intelligence (HAI)",
             recipients=[user.email],
             bcc=current_app.config['ADMIN_EMAILS'],
-            body=f"Dear {user.email},\n\nYour account registration has been rejected by an admin. Please contact support for more information."
+            body=f"Dear {user.email},\n\nUnfortunately, your registration request has been rejected because the email address provided is not recognized as a valid HPE email address.\n\n\nPlease ensure you register using your official HPE email account to access the HPE Aruba Intelligence (HAI) platform.\n\n\nIf you believe this was a mistake or need further assistance, please contact the HAI support team."
         )
         logger.debug(f"Sending rejection email to {user.email}, BCC: {current_app.config['ADMIN_EMAILS']}")
         mail.send(msg)

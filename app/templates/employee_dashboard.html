@@ -211,7 +211,8 @@
         </td>
         <td style="padding: 8px; text-align: center;">
           {% if output_files['KEYWORD'] and output_files['KEYWORD']|exists %}
-            <a href="{{ url_for('employee_bp.email_output', session_id=session_id, script='keyword') }}">Email</a>
+            <!-- <a href="{{ url_for('employee_bp.email_output', session_id=session_id, script='keyword') }}">Email</a> -->
+
           {% else %}
             N/A
           {% endif %}

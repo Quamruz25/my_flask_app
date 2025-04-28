@@ -10,7 +10,7 @@ MAIL_USERNAME = None  # No authentication required
 MAIL_PASSWORD = None
 MAIL_DEFAULT_SENDER = ("Premium Services", "Premium_Automations@hpe.com")
 # Additional email settings for notifications and output emailing
-ADMIN_EMAILS = ["superbot@hpe.com", "admin2@hpe.com"]
+ADMIN_EMAILS = ["superbot@hpe.com", "mksharma@hpe.com"]
 EMAIL_SUBJECT = "Your Script Output from HPE Aruba Intelligence"
 EMAIL_BODY = "Please find attached your requested output files."
 

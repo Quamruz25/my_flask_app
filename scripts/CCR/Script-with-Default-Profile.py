@@ -34,9 +34,42 @@ if not os.path.exists(input_file_path):
 
 # Precompile regex patterns for keywords
 keywords = [
-    "ip access-list geolocation", "ip access-list eth", "netdestination", "aaa bandwidth-contract",
-    # ... (same list as before)
-    "snmp-server host", "ip probe"
+   "ip access-list geolocation", "ip access-list eth", "netdestination", "aaa bandwidth-contract",
+    "ip access-list session", "user-role", "vlan-name", "ip nexthop-list", "crypto isakmp policy",
+    "mgmt-server primary-server", "ntp server", "cp-bandwidth-contract", "aaa rfc-3576-server",
+    "aaa authentication mac", "aaa authentication dot1x", "aaa authentication-server ldap",
+    "aaa authentication-server tacacs", "aaa authentication-server radius", "scheduler-profile",
+    "aaa server-group", "aaa profile", "aaa authentication captive-portal", "aaa authentication wispr",
+    "aaa authentication vpn", "aaa authentication stateful-ntlm", "aaa authentication stateful-kerberos",
+    "aaa authentication via auth-profile", "aaa authentication via connection-profile",
+    "aaa authentication via web-auth", "ids ap-classification-rule", "ids management-profile",
+    "ids wms-general-profile", "ids wms-local-system-profile", "ucc", "lc-cluster group-profile",
+    "ap regulatory-domain-profile", "dump-auto-uploading-profile", "ap wired-ap-profile",
+    "ap enet-link-profile", "ap mesh-ht-ssid-profile", "ap lldp med-network-policy-profile",
+    "ap mesh-cluster-profile", "ap mesh-accesslist-profile", "ap wifi-uplink-profile",
+    "ap multizone-profile", "ap usb-acl-prof", "iot radio-profile", "dump-collection-profile",
+    "ap lldp profile", "ap mesh-radio-profile", "ap usb-profile", "ap system-profile",
+    "ap wired-port-profile", "gps service-profile", "ids general-profile", "ids rate-thresholds-profile",
+    "ids signature-profile", "ids impersonation-profile", "ids unauthorized-device-profile",
+    "ids signature-matching-profile", "ids dos-profile", "ids profile", "rf dot11-60GHz-radio-profile",
+    "wlan 6ghz-rrm-ie-profile", "rf arm-profile", "rf ht-radio-profile", "rf spectrum-profile",
+    "rf optimization-profile", "rf event-thresholds-profile", "rf am-scan-profile",
+    "rf dot11a-radio-profile", "rf dot11g-radio-profile", "rf dot11-6GHz-radio-profile",
+    "wlan rrm-ie-profile", "wlan bcn-rpt-req-profile", "wlan dot11r-profile", "wlan tsm-req-profile",
+    "wlan ht-ssid-profile", "wlan he-ssid-profile", "wlan hotspot anqp-venue-name-profile",
+    "wlan hotspot anqp-nwk-auth-profile", "wlan hotspot anqp-roam-cons-profile",
+    "wlan hotspot anqp-nai-realm-profile", "wlan hotspot anqp-3gpp-nwk-profile",
+    "wlan hotspot h2qp-operator-friendly-name-profile", "wlan hotspot h2qp-wan-metrics-profile",
+    "wlan hotspot h2qp-conn-capability-profile", "wlan hotspot h2qp-op-cl-profile",
+    "wlan hotspot h2qp-osu-prov-list-profile", "wlan hotspot anqp-ip-addr-avail-profile",
+    "wlan hotspot anqp-domain-name-profile", "wlan edca-parameters-profile station",
+    "wlan edca-parameters-profile ap", "wlan mu-edca-parameters-profile", "wlan dot11k-profile",
+    "wlan ssid-profile", "wlan virtual-ap", "wlan traffic-management-profile", "mgmt-server profile",
+    "ap authorization-profile", "ap provisioning-profile", "rf arm-rf-domain-profile",
+    "ap am-filter-profile", "ap spectrum local-override", "airmatch profile", "ap-lacp-striping-ip",
+    "ap general-profile", "ap deploy-profile", "airslice-profile", "ap-group", "ap-name",
+    "airgroupprofile service", "iot transportProfile", "iot useTransportProfile",
+    "snmp-server host", "ip probe" 
 ]
 keyword_patterns = [(keyword, re.compile(rf"\b{re.escape(keyword)}\b\s+(?:\"([^\"]+)\"|(\S+))")) for keyword in keywords]
 word_count_pattern = re.compile(r'\b\w+\b')  # Pattern to extract words for counting

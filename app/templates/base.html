@@ -115,7 +115,7 @@
 </head>
 <body>
   <div class="logo">
-    <img src="{{ url_for('static', filename='images/hpe-logo.png') }}" alt="HPE Aruba Logo" onerror="this.onerror=null; this.src='/static/images/hpe-logo.png'; console.error('Failed to load logo from url_for, fallback used');">
+    <img src="{{url_for('static', filename='images/hpe-logo.png')}}" alt="HPE Aruba Logo" onerror="this.onerror=null; this.src='/static/images/hpe-logo.png'; console.error('Failed to load logo from url_for, fallback used');">
   </div>
   <div class="menu">
     <div class="dropdown">
@@ -137,7 +137,8 @@
   </div>
   <div class="footer">
     <strong>POWERED BY</strong> - HPE ARUBA PREMIUM SERVICES<br><br>
-    <strong>Contact Person</strong> <a href="mailto:mksharma@hpe.com">Manish Sharma</a> & <a href="mailto:quamruz.subhani@hpe.com">Quamruz Subhani</a>
+    <a href="mailto:mksharma@hpe.com,quamruz.subhani@hpe.com"><strong>Contact Us</strong></a>
+ 
   </div>
   {% block scripts %}
   <!-- Child templates can include additional scripts here -->

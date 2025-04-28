@@ -126,6 +126,7 @@ def enable_user(user_id):
     user.enabled = 1  # Set to approved state
     try:
         db.session.commit()
+        logger.debug(f"User {user.email} enabled successfully in database")
 
         # Send approval email with BCC to admins
         msg = Message(
@@ -134,11 +135,18 @@ def enable_user(user_id):
             bcc=current_app.config['ADMIN_EMAILS'],
             body=f"Dear {user.email},\n\nYour account has been approved by an admin. You can now log in to the HPE Aruba Intelligence platform."
         )
-        mail.send(msg)
+        try:
+            logger.debug(f"Sending approval email to {user.email}, BCC: {current_app.config['ADMIN_EMAILS']}")
+            mail.send(msg)
+            logger.debug(f"Approval email sent to {user.email}")
+        except Exception as email_error:
+            logger.error(f"Failed to send approval email to {user.email}: {str(email_error)}")
+            flash('User enabled, but failed to send approval email. Please contact support.')
 
         flash(f'User {user.email} has been enabled.')
     except Exception as e:
         db.session.rollback()
+        logger.error(f"Error enabling user {user.email}: {str(e)}")
         flash(f'Error enabling user: {str(e)}')
 
     return redirect(url_for('admin_bp.admin_dashboard'))
@@ -162,7 +170,9 @@ def reject_user(user_id):
             bcc=current_app.config['ADMIN_EMAILS'],
             body=f"Dear {user.email},\n\nYour account registration has been rejected by an admin. Please contact support for more information."
         )
+        logger.debug(f"Sending rejection email to {user.email}, BCC: {current_app.config['ADMIN_EMAILS']}")
         mail.send(msg)
+        logger.debug(f"Rejection email sent to {user.email}")
 
         flash(f'User {user.email} has been rejected.')
     except Exception as e:

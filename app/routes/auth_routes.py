@@ -15,6 +15,7 @@ def register():
     if request.method == 'POST':
         email = request.form.get('email')
         password = request.form.get('password')
+        logger.debug(f"Registration attempt for email: {email}")
 
         # Check if user already exists
         existing_user = User.query.filter_by(email=email).first()
@@ -36,6 +37,7 @@ def register():
         try:
             db.session.add(new_user)
             db.session.commit()
+            logger.debug(f"User {email} registered successfully in database")
 
             # Send confirmation email with BCC to admins
             msg = Message(
@@ -44,13 +46,20 @@ def register():
                 bcc=current_app.config['ADMIN_EMAILS'],
                 body=f"Welcome to the Flask App, {email}!\n\nYour account has been created as an employee. Please wait for admin approval to log in."
             )
-            mail.send(msg)
+            try:
+                logger.debug(f"Sending registration email to {email}, BCC: {current_app.config['ADMIN_EMAILS']}")
+                mail.send(msg)
+                logger.debug(f"Registration email sent to {email}")
+            except Exception as email_error:
+                logger.error(f"Failed to send registration email to {email}: {str(email_error)}")
+                flash('Registration successful, but failed to send confirmation email. Please contact support.')
 
-            flash('Registration successful! A confirmation email has been sent. Please wait for admin approval.')
+            flash('Registration successful! Awaiting admin approval.')
             return redirect(url_for('auth_bp.login'))
 
         except Exception as e:
             db.session.rollback()
+            logger.error(f"Registration failed for {email}: {str(e)}")
             flash(f'Registration failed: {str(e)}')
             return redirect(url_for('auth_bp.register'))
 

@@ -230,37 +230,6 @@
   {% endif %}
   
   <!-- Display Recent Sessions (Limited to Last 3) -->
-  {% if sessions %}
-  <h3>Recent Sessions (Last 3)</h3>
-  <p>For a complete list, visit <a href="{{ url_for('employee_bp.historical') }}">Historical Sessions</a>.</p>
-  <table style="width:100%; border-collapse: collapse; margin-top: 20px;">
-    <thead>
-      <tr style="background-color: #d3d3d3;">
-        <th style="padding: 8px;">Session ID</th>
-        <th style="padding: 8px;">Case Number</th>
-        <th style="padding: 8px;">Upload Time</th>
-        <th style="padding: 8px;">File Name</th>
-        <th style="padding: 8px;">View Results</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for session in sessions[:3] %}
-      <tr>
-        <td style="padding: 8px; text-align: center;">{{ session.session_id }}</td>
-        <td style="padding: 8px; text-align: center;">{{ session.case_number }}</td>
-        <td style="padding: 8px; text-align: center;">{{ session.upload_time }}</td>
-        <td style="padding: 8px; text-align: center;">{{ session.file_name }}</td>
-        <td style="padding: 8px; text-align: center;">
-          {% if session.results_exist %}
-            <a href="{{ url_for('employee_bp.serve_output', session_id=session.session_id, filename='keywordsearch.html') }}" target="_blank">View Keyword Results</a>
-          {% else %}
-            N/A
-          {% endif %}
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-  {% endif %}
+  
 </div>
 {% endblock %}

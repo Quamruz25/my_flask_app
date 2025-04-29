@@ -115,7 +115,7 @@
 </head>
 <body>
   <div class="logo">
-    <img src="{{url_for('static', filename='images/hpe-logo.png')}}" alt="HPE Aruba Logo" onerror="this.onerror=null; this.src='/static/images/hpe-logo.png'; console.error('Failed to load logo from url_for, fallback used');">
+    <img src="{{ url_for('static_bp.serve_static', filename='images/hpe-logo.png') }}" alt="HPE Aruba Logo">
   </div>
   <div class="menu">
     <div class="dropdown">
@@ -131,6 +131,19 @@
   <div class="header">WELCOME TO HPE ARUBA INTELLIGENCE</div>
   <br><br>
   <div class="container">
+    <!-- Render flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flashes">
+          {% for category, message in messages %}
+            <div class="flash-message flash-{{ category }}">
+              {{ message }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
     {% block content %}
     <!-- Child templates will insert content here -->
     {% endblock %}
@@ -138,7 +151,6 @@
   <div class="footer">
     <strong>POWERED BY</strong> - HPE ARUBA PREMIUM SERVICES<br><br>
     <a href="mailto:mksharma@hpe.com,quamruz.subhani@hpe.com"><strong>Contact Us</strong></a>
- 
   </div>
   {% block scripts %}
   <!-- Child templates can include additional scripts here -->

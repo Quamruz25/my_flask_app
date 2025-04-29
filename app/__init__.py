@@ -1,9 +1,9 @@
 # Location: /opt/my_flask_app/app/__init__.py
 import os
-from flask import Flask, render_template, redirect, url_for, send_from_directory
+from flask import Flask, render_template, redirect, url_for, send_from_directory, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
-from flask_login import LoginManager
+from flask_login import LoginManager, current_user
 from flask_mail import Mail
 import logging
 from logging.handlers import RotatingFileHandler
@@ -102,10 +102,12 @@ def create_app():
     employee_logger.debug("Employee routes logger configured.")
     
     # Register blueprints
-    from app.routes import auth_routes, employee_routes, admin_routes
+  	
+    from app.routes import auth_routes, employee_routes, admin_routes, static_routes
     app.register_blueprint(auth_routes.auth_bp)
     app.register_blueprint(employee_routes.employee_bp)
     app.register_blueprint(admin_routes.admin_bp, url_prefix='/admin')
+    app.register_blueprint(static_routes.static_bp)
     
     # Add custom Jinja filter
     app.jinja_env.filters['exists'] = file_exists
@@ -121,6 +123,14 @@ def create_app():
     def test_logo():
         app_logger.debug("Test logo route accessed")
         return send_from_directory(app.static_folder, 'images/hpe-logo.png')
+    
+    # Ensure static files are accessible without authentication
+    @app.before_request
+    def allow_static_files():
+        app_logger.debug(f"Before request: path={request.path}, endpoint={request.endpoint}, authenticated={current_user.is_authenticated}")
+        if request.path.startswith('/static/'):
+            app_logger.debug("Allowing static file request")
+            return  # Allow static file requests without redirecting
     
     return app
 
